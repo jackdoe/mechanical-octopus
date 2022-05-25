@@ -1,10 +1,5 @@
 package segment
 
-import (
-	"encoding/binary"
-	"encoding/json"
-)
-
 type Term struct {
 	Field string
 	Value string
@@ -68,42 +63,6 @@ func (s *SegmentInMemory) Encode() EncodedSegment {
 	return EncodedSegment{EncodedPointers: pointers.Encode(), EncodedPostings: postingsData}
 }
 
-type Pointer struct {
-	Len int
-	Off int
-}
-
-func (p *Pointer) PostingsFromBytes(data []byte) []int32 {
-	return PostingsFromBytes(data, p.Len, p.Off)
-}
-
-type Pointers struct {
-	Data map[string]map[string]Pointer
-}
-
-func (p *Pointers) PostingsFromBytes(data []byte, t Term) []int32 {
-	if f, ok := p.Data[t.Field]; ok {
-		if v, ok := f[t.Value]; ok {
-			return v.PostingsFromBytes(data)
-		}
-	}
-	return []int32{}
-}
-
-func (p *Pointers) Encode() []byte {
-	data, err := json.Marshal(p)
-	if err != nil {
-		panic(err)
-	}
-	return data
-}
-
-func PointersFromBytes(data []byte) (*Pointers, error) {
-	p := &Pointers{}
-	err := json.Unmarshal(data, p)
-	return p, err
-}
-
 func PostingsFromBytes(data []byte, length, offset int) []int32 {
 	return ByteArrayToIntA(data[offset : offset+length])
 }
@@ -111,20 +70,4 @@ func PostingsFromBytes(data []byte, length, offset int) []int32 {
 type EncodedSegment struct {
 	EncodedPointers []byte
 	EncodedPostings []byte
-}
-
-func ByteArrayToIntA(data []byte) []int32 {
-	postings := make([]int32, len(data)/4)
-	for i := 0; i < len(postings); i++ {
-		from := i * 4
-		postings[i] = int32(binary.LittleEndian.Uint32(data[from : from+4]))
-	}
-	return postings
-}
-func IntArrayToByteA(data []int32) []byte {
-	b := make([]byte, 4*len(data))
-	for i, did := range data {
-		binary.LittleEndian.PutUint32(b[i*4:], uint32(did))
-	}
-	return b
 }
