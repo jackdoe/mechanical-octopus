@@ -63,10 +63,6 @@ func (s *SegmentInMemory) Encode() EncodedSegment {
 	return EncodedSegment{EncodedPointers: pointers.Encode(), EncodedPostings: postingsData}
 }
 
-func PostingsFromBytes(data []byte, length, offset int) []int32 {
-	return ByteArrayToIntA(data[offset : offset+length])
-}
-
 type EncodedSegment struct {
 	EncodedPointers []byte
 	EncodedPostings []byte

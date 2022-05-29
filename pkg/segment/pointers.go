@@ -1,14 +1,13 @@
 package segment
 
-import "encoding/json"
-
+//go:generate msgp
 type Pointer struct {
 	Len int
 	Off int
 }
 
 func (p *Pointer) PostingsFromBytes(data []byte) []int32 {
-	return PostingsFromBytes(data, p.Len, p.Off)
+	return ByteArrayToIntA(data[p.Off : p.Off+p.Len])
 }
 
 type Pointers struct {
@@ -25,7 +24,7 @@ func (p *Pointers) PostingsFromBytes(data []byte, t Term) []int32 {
 }
 
 func (p *Pointers) Encode() []byte {
-	data, err := json.Marshal(p)
+	data, err := p.MarshalMsg(nil)
 	if err != nil {
 		panic(err)
 	}
@@ -34,6 +33,6 @@ func (p *Pointers) Encode() []byte {
 
 func PointersFromBytes(data []byte) (*Pointers, error) {
 	p := &Pointers{}
-	err := json.Unmarshal(data, p)
+	_, err := p.UnmarshalMsg(data)
 	return p, err
 }
