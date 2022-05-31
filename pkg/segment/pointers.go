@@ -1,5 +1,7 @@
 package segment
 
+import "io"
+
 //go:generate msgp
 type Pointer struct {
 	Len int
@@ -8,6 +10,12 @@ type Pointer struct {
 
 func (p *Pointer) PostingsFromBytes(data []byte) []int32 {
 	return ByteArrayToIntA(data[p.Off : p.Off+p.Len])
+}
+
+func (p *Pointer) PostingsFromReader(r io.ReaderAt) ([]int32, error) {
+	data := make([]byte, p.Len)
+	_, err := r.ReadAt(data, int64(p.Off))
+	return ByteArrayToIntA(data[p.Off : p.Off+p.Len]), err
 }
 
 type Pointers struct {
@@ -21,6 +29,15 @@ func (p *Pointers) PostingsFromBytes(data []byte, t Term) []int32 {
 		}
 	}
 	return []int32{}
+}
+
+func (p *Pointers) PostingsFromReader(r io.ReaderAt, t Term) ([]int32, error) {
+	if f, ok := p.Data[t.Field]; ok {
+		if v, ok := f[t.Value]; ok {
+			return v.PostingsFromReader(r)
+		}
+	}
+	return []int32{}, nil
 }
 
 func (p *Pointers) Encode() []byte {

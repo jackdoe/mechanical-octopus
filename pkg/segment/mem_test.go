@@ -1,6 +1,7 @@
 package segment
 
 import (
+	"bytes"
 	"log"
 	"testing"
 )
@@ -18,5 +19,9 @@ func TestMem(t *testing.T) {
 
 	pointers, _ := PointersFromBytes(encoded.EncodedPointers)
 
+	reader := bytes.NewReader(encoded.EncodedPostings)
+
 	log.Printf("%v", pointers.PostingsFromBytes(encoded.EncodedPostings, Term{"user_id", "aabbccdd"}))
+	p, _ := pointers.PostingsFromReader(reader, Term{"user_id", "aabbccdd"})
+	log.Printf("%v", p)
 }

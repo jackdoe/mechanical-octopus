@@ -33,7 +33,6 @@ func (s *SegmentInMemory) GetPostingsList(t Term) []int32 {
 		}
 	}
 	return []int32{}
-
 }
 
 // PROOF OF CONCEPT
